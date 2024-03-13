@@ -24,13 +24,15 @@ public class SemanticCrawlerImpl implements SemanticCrawler {
 	private CharsetEncoder enc = Charset.forName("ISO-8859-1").newEncoder(); //variável declaradas como atributo para economizar recurso ao não instanciar a cada passagem da estrutura de repetição
 	private Model tempModel = ModelFactory.createDefaultModel();
 
+	private int successfulURICounter = 0;
+
 	public SemanticCrawlerImpl() {}
 
 	public void search(Model model, String resourceURI) {
 		try {
 			tempModel.read(resourceURI); //Lê o RDF da URI num modelo temporário
 			StmtIterator getTriplas = tempModel.listStatements(tempModel.createResource(resourceURI),(Property)null,(RDFNode)null); //lista no statement apenas as triplas com o Recurso sendo URI em análise
-			model.add(getTriplas);	// Adiciona as trilas lidas ao modelo
+			model.add(getTriplas);	// Adiciona as triplas lidas ao modelo
 			URIsVisitadas.add(resourceURI); //adiciona a URI à lista de visitadas
 			StmtIterator statements = model.listStatements(model.createResource(resourceURI),OWL.sameAs,(RDFNode)null); //Coloca no statmentes apenas as triplas com o predicado OWN.sameAs
 			while (statements.hasNext()) { // varre as triplas do statment
@@ -47,6 +49,7 @@ public class SemanticCrawlerImpl implements SemanticCrawler {
 
 				if (enc.canEncode(object.getURI()) && !isVisited && !object.isAnon()) { //Testa se a URI é composta apenas caracteres do alfabeto latino (ISO 8859-1), se não foi visitada antes e se não é um nó em branco
 					search(model, object.getURI());	//chama recursivamente o o método search para analisar a nova URI que é OWL.sameAs com o Sujeito
+					successfulURICounter++;
 				} else if (object.getURI() == null || object.isAnon()) { //Verifica se o Objéto é um nó em branco
 					System.out.println("\nNó em branco: "+object.getId().toString()+"\n");
 					trataNoEmBranco (model, object); //chama a função que adiciona nó em branco ao modelo
@@ -58,6 +61,7 @@ public class SemanticCrawlerImpl implements SemanticCrawler {
 		}catch (NoClassDefFoundError error) {
 			System.err.println ("Erro de classe não encontrada ao tentar abrir URI: "+error.getMessage());
 		}
+		System.out.println("URI visitadas com sucesso: "+successfulURICounter);
 	}
 
 	private void trataNoEmBranco(Model model, Resource object) {
