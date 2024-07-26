@@ -56,7 +56,7 @@ crawler.search(model, "http://dbpedia.org/resource/Zico");
 model.write(System.out, "TTL");
 ```
 
-##Example
+## Example
 ```java
 String URI = "http://dbpedia.org/resource/Zico";
 Model model = ModelFactory.createDefaultModel();
